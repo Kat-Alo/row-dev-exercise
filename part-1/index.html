@@ -1,0 +1,78 @@
+<html lang="en" class="no-js">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>Part 1</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+	<style>
+		html,
+		body {
+			margin:  0;
+			padding: 0px;
+			color: black;
+			background-color: white;
+			font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+			font-size:   18px;
+			line-height: 1.36em;
+		}
+		.category {
+			font-weight: bold;
+		}
+    </style>
+</head>
+<body>
+	<script>
+		//sends data to populate page
+		function weatherJsonpCallback(data){
+			//find Palo Alto in the data
+			/*Not an ideal method for validating PA's data — not super resilient to changes to the citkey, for instance
+			but at least doesn't assume the index will always be consistent*/
+			const isCity = (item) => item.citykey == "palo_alto";
+			let cityIndex = data.cities.findIndex(isCity);
+
+			/*Not great for a lot of cases to set the HTML of a div rather than call element creations,
+			but I think it's more succint and readable for this case — could be persuaded otherwise*/
+			//current conditions
+            const currentContainer = document.getElementById("current");            
+            const currentConditionsHtml = `
+            	<h2>Current Conditions in Palo Alto</h2>
+            	<div><span class=\"category\"/>temp:</span><span class=\"weather-details\"> &#176;${data.cities[cityIndex].current[0].temp}</span></div>
+            	<div><span class=\"category\"/>condition:</span><span class=\"weather-details\"> ${data.cities[cityIndex].current[0].condition}</span></div>
+            `;
+            currentContainer.innerHTML = currentConditionsHtml;
+
+            //forecast
+            const forecastContainer = document.getElementById("forecast");
+            let forecastHtml = `
+            	<h2>Forecast for Palo Alto</h2>
+            `;
+            data.cities[cityIndex].weekly.map((day, index) => {
+            	let thisHtml = `<div><span class=\"category\"/>${day.day}:</span><span class=\"weather-details\"> ${day.daycondition}</span></div>`;
+            	forecastHtml += thisHtml;
+            })
+            forecastContainer.innerHTML = forecastHtml;
+        };
+
+        //equips the data loader with the data source info
+        function addDataLoader(){
+        	const dataLoadScript = document.getElementById("data-loader");
+			dataLoadScript.type = "text/javascript";
+			dataLoadScript.src = "https://restofworld.org/wp-content/projects/code/exercise/data/weather.js?weatherJsonpCallback=weatherJsonpCallback";
+        };
+
+        // On load, ask the data-loader script to grab us some data        
+		document.body.onload = addDataLoader;
+	</script>
+	<script id="data-loader"></script>
+    <h1>Weather Report</h1>
+	<div id="content">
+		<div id="current">
+			<!-- Current conditions for Palo Alto -->
+		</div>
+		<div id="forecast">
+			<!-- Current weekly forecast for Palo Alto -->
+		</div>
+	</div>
+</body>
+</html>
